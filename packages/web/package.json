@@ -1,5 +1,5 @@
 {
-  "name": "untitled-lftp-project-web",
+  "name": "web",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -29,6 +29,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react": "^16.8.24",
     "eslint-config-airbnb": "^17.1.1",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-jsx-a11y": "^6.2.3",

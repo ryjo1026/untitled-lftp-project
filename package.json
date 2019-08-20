@@ -1,0 +1,14 @@
+{
+  "name": "untitled-lftp-project",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "start": "lerna run start"
+  },
+  "devDependencies": {
+    "lerna": "^3.16.4"
+  }
+}
