@@ -19,7 +19,9 @@ export default class Controller {
 
     // Initiate a scan process for each possible file "location"
     this.remoteScanner = new RemoteScanner();
-    this.localScanner = new LocalScanner();
+    this.localScanner = new LocalScanner(
+      '/Users/ryanjohnston/Development/untitled-lftp-project/test'
+    );
     this.lftpScanner = new LFTPScanner();
 
     // Data Structure for  jobs
@@ -34,7 +36,7 @@ export default class Controller {
     console.log('Bootstrapping controller');
 
     this.remoteScanner.bootstrap();
-    this.localScanner.bootstrap();
+    this.localScanner.bootstrap((files: string[]) => console.log(files));
     this.lftpScanner.bootstrap();
 
     // TODO Initiate extraction process

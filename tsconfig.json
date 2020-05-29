@@ -2,13 +2,14 @@
   "compilerOptions": {
     "removeComments": true,
     "module": "commonjs",
+    "moduleResolution": "node",
     "sourceMap": true,
-    "outDir": "./dist",
+    "outDir": "./dist/",
     "target": "es5",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]

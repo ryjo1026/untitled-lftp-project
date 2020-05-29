@@ -1,3 +1,7 @@
+test/
+
+dist/
+
 # Logs
 logs
 *.log
