@@ -1,50 +1,41 @@
 import fswatch from 'fs';
+import * as chokidar from 'chokidar';
 
 /**
- * Scanner abstraction represents objects that continuously watch for filesystem changes or process progress for LFTP
+ * Scanner watches a remote or local filesystem for changes.
  */
-abstract class Scanner {
-  abstract bootstrap(callback: Function): void;
+class Scanner {
+  watchDir: string; // Path on machine to watch for changes
 
-  // TODO probably shared logging logic here
-}
+  isRemote: boolean; // are we scanning a remote directory
 
-class RemoteScanner extends Scanner {
-  bootstrap() {}
-}
-
-class LFTPScanner extends Scanner {
-  bootstrap() {}
-}
-
-/**
- * LocalScanner starts an fswatch on the top-level directory and
- */
-class LocalScanner extends Scanner {
-  watchDir: string; // Path on local machine to watch for changes
-
-  constructor(path: string) {
-    super();
-
-    this.watchDir = path;
+  constructor(watchDir: string, isRemote: boolean) {
+    this.watchDir = watchDir;
+    this.isRemote = isRemote;
     // TODO ensure is directory
   }
 
   /**
-   *
+   * Create a watcher on the directory
    * @param callback a function that takes in a list representing all files scanned
    */
   bootstrap(callback: (f: string[]) => void) {
-    fswatch.watch(this.watchDir, () => {
-      fswatch.readdir(this.watchDir, (err, filenames) => {
-        if (err) {
-          // TODO proper logging
-          return console.error('Error scanning ' + this.watchDir);
-        }
-        callback(filenames);
+    console.log('Watching', this.watchDir);
+
+    // Fallback to polling only if remote
+    chokidar
+      .watch(this.watchDir, { usePolling: this.isRemote, depth: 1 })
+      .on('all', (event, path) => {
+        console.log(`Heard ${event} on ${path}`);
+        fswatch.readdir(this.watchDir, (err, filenames) => {
+          if (err) {
+            // TODO proper logging
+            return console.error(`Error scanning ${this.watchDir}`);
+          }
+          return callback(filenames);
+        });
       });
-    });
   }
 }
 
-export { RemoteScanner, LFTPScanner, LocalScanner };
+export default Scanner;

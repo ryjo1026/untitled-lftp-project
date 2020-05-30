@@ -1,6 +1,13 @@
 test/
 
+# Build directory
 dist/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+KEYS/
 
 # Logs
 logs

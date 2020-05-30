@@ -18,8 +18,7 @@
   "homepage": "https://github.com/ryjo1026/untitled-lftp-project#readme",
   "dependencies": {
     "@types/express": "^4.17.6",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.3",
+    "chokidar": "^3.4.0",
     "express": "^4.17.1",
     "typescript": "^3.9.3"
   },
@@ -28,13 +27,16 @@
     "@babel/core": "^7.9.6",
     "@babel/preset-env": "^7.9.6",
     "@types/node": "^14.0.5",
-    "@typescript-eslint/eslint-plugin": "^3.0.1",
-    "@typescript-eslint/parser": "^3.0.1",
+    "@typescript-eslint/eslint-plugin": "3.0.0",
+    "@typescript-eslint/parser": "3.0.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-plugin-import": "^2.20.2",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.20.0",
-    "eslint-plugin-react-hooks": "^2.5.1"
+    "eslint-plugin-react-hooks": "^2.5.1",
+    "prettier": "^2.0.5"
   }
 }
