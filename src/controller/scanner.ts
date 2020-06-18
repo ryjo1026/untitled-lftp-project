@@ -7,7 +7,7 @@ import * as chokidar from 'chokidar';
 class Scanner {
   watchDir: string; // Path on machine to watch for changes
 
-  isRemote: boolean; // are we scanning a remote directory
+  isRemote: boolean; // Are we scanning a remote directory?
 
   constructor(watchDir: string, isRemote: boolean) {
     this.watchDir = watchDir;

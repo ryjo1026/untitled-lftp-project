@@ -10,18 +10,15 @@
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "dbaeumer.vscode-eslint",
-    "ms-vscode.vscode-typescript-tslint-plugin"
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "esbenp.prettier-vscode"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [
-    8000
-  ],
+  "forwardPorts": [8000],
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "bash .devcontainer/install-dev-tools.sh",
   // Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
   // "remoteUser": "node"
   // SSHFS requires this
-  "runArgs": [
-    "--privileged"
-  ]
+  "runArgs": ["--privileged"]
 }
