@@ -1,9 +1,14 @@
 import express from 'express';
+import * as path from 'path';
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-  res.json({ hello: 'world' });
+router.get('/api', (req, res) => {
+  res.json({ hello: 'api' });
+});
+
+router.get('*', (req, res) => {
+  res.sendFile(`${path.resolve('./')}/dist/static/index.html`);
 });
 
 export default router;

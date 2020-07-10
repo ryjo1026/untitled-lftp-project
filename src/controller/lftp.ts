@@ -1,9 +1,35 @@
-import { spawn, ChildProcess, exec } from 'child_process';
+import { spawn, ChildProcess, exec, execSync } from 'child_process';
 import { Readable, Writable } from 'stream';
 
 function validateStream(s: Readable | Writable | null) {
   // TODO throw here
   if (s === null) console.error(`${s}: Stream is null`);
+}
+
+function verifyLftpConnection(s: string) {
+  const lftpOut = s.toString();
+
+  // Verify proper connection by comparing LFTP files with SSHFS files
+  const lftpFileList = lftpOut.match(/(?!\s)(\S*)(?=\n)/g);
+  let sshfsFileList: string[];
+
+  const sshfsLs = spawn('ls', ['-va', '/mnt/remote']);
+  sshfsLs.stdout.on('data', (data) => {
+    const sshfsOut = data.toString();
+
+    // TODO abstract SSHFS methods
+    sshfsFileList = sshfsOut.match(/([^\s]+)/g);
+
+    if (sshfsFileList.sort().toString() !== lftpFileList!.sort().toString()) {
+      console.error(
+        'File structures desynced',
+        sshfsFileList.sort(),
+        lftpFileList!.sort(),
+      );
+      process.exit(1);
+    }
+    console.log('Successful LFTP connection');
+  });
 }
 
 export default class LFTP {
@@ -28,7 +54,7 @@ export default class LFTP {
         '\'set sftp:connect-program "ssh -a -x -i /workspaces/untitled-lftp-project/KEYS/cacus"\'',
       ],
       {
-        stdio: ['pipe', 'pipe', process.stderr],
+        stdio: ['pipe', 'pipe', 'pipe'],
         shell: true,
         detached: true,
       },
@@ -46,36 +72,25 @@ export default class LFTP {
     const stdin: Writable = this.child.stdin!;
 
     stdin.write('ls\n');
-    this.child.stdout!.on('data', this.verifyLftpConnection);
+    this.child.stderr!.on('data', this.parseConnectionError);
+    this.child.stdout!.on('data', verifyLftpConnection);
   }
 
-  verifyLftpConnection(s: string) {
-    const lftpOut = s.toString();
+  parseConnectionError(s: string) {
+    const lftpErr = s.toString();
 
-    if (RegExp('Host key verification failed').test(lftpOut)) {
+    console.error(`Parsing error ${lftpErr}`);
+
+    if (RegExp('Host key verification failed.').test(lftpErr)) {
       // We need to add the ECDSA fingerprint to known hosts TODO test this
       console.log('Attempting to add ECDSA fingerprint to known_hosts');
-      exec('ssh-keyscan -H cacus.feralhosting.com >> ~/.ssh/known_hosts');
+      execSync('ssh-keyscan -H cacus.feralhosting.com >> ~/.ssh/known_hosts');
 
+      // Re-try verification
       this.child.stdin!.write('ls\n');
-      this.child.stdout!.on('data', this.verifyLftpConnection);
-      return;
+      this.child.stdout!.on('data', verifyLftpConnection);
     }
 
-    const lftpFileList = lftpOut.match(/(?!\s)(\S*)(?=\n)/g);
-    let sshfsFileList: string[];
-
-    const sshfsLs = spawn('ls', ['-va', '/mnt/remote']);
-    sshfsLs.stdout.on('data', (data) => {
-      const sshfsOut = data.toString();
-
-      sshfsFileList = sshfsOut.match(/([^\s]+)/g);
-
-      if (sshfsFileList.sort().toString() !== lftpFileList!.sort().toString()) {
-        console.error('File structures desynced');
-        process.exit(1);
-      }
-      console.log('Successful LFTP connection');
-    });
+    // TODO other error conditions
   }
 }

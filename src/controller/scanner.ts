@@ -20,20 +20,31 @@ class Scanner {
    * @param callback a function that takes in a list representing all files scanned
    */
   bootstrap(callback: (f: string[]) => void) {
-    console.log('Watching', this.watchDir);
-
-    // Fallback to polling only if remote
     chokidar
-      .watch(this.watchDir, { usePolling: this.isRemote, depth: 1 })
-      .on('all', (event, path) => {
-        console.log(`Heard ${event} on ${path}`);
-        fswatch.readdir(this.watchDir, (err, filenames) => {
-          if (err) {
-            // TODO proper logging
-            return console.error(`Error scanning ${this.watchDir}`);
-          }
-          return callback(filenames);
-        });
+      .watch(this.watchDir, {
+        usePolling: this.isRemote,
+        depth: 1,
+      })
+      .on('ready', () => {
+        console.log('Watching', this.watchDir);
+
+        // Fallback to polling only if remote
+        chokidar
+          .watch(this.watchDir, {
+            usePolling: this.isRemote,
+            depth: 1,
+            ignoreInitial: true,
+          })
+          .on('all', (event, path) => {
+            console.log(`Heard ${event} on ${path}`);
+            fswatch.readdir(this.watchDir, (err, filenames) => {
+              if (err) {
+                // TODO proper logging
+                return console.error(`Error scanning ${this.watchDir}`);
+              }
+              return callback(filenames);
+            });
+          });
       });
   }
 }

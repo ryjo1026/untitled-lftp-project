@@ -17,7 +17,8 @@ popd
 mkdir /test
 mkdir /mnt/remote
 
-# Mount remote directory TODO move to docker env var
+# Mount remote directory TODO move to docker env var or to NodeJS
+ssh-keyscan -H cacus.feralhosting.com >> ~/.ssh/known_hosts
 sshfs -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3,allow_other,default_permissions,IdentityFile=/workspaces/untitled-lftp-project/KEYS/cacus ryjo1026@cacus.feralhosting.com:/media/sdl1/ryjo1026 /mnt/remote
 
 pushd ..
