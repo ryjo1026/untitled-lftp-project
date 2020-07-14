@@ -1,0 +1,45 @@
+@charset "utf-8";
+
+// Bulma overrides
+$family-sans-serif: 'LatoRegular';
+$primary: #5f67f3;
+
+@import '../../node_modules/bulma/bulma.sass';
+
+@font-face {
+  font-family: 'LatoRegular';
+  src: url('/static/fonts/Lato-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'LatoBold';
+  src: url('/static/fonts/Lato-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'LatoBlack';
+  src: url('/static/fonts/Lato-Black.ttf') format('truetype');
+}
+
+$family-display: 'LatoBlack';
+$family-heading: 'LatoBold';
+$family-body: 'Latoregular';
+
+h1,
+h2 {
+  font-family: $family-display;
+}
+
+h3,
+h4 {
+  font-family: $family-heading;
+}
+
+h5,
+h6 {
+  font-family: $family-heading;
+}
+
+b {
+  font-family: $family-body;
+}

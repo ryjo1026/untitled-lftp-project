@@ -3,16 +3,17 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const htmlPlugin = new HtmlWebpackPlugin({
   filename: './index.html',
-  template: './src/templates/index.html',
+  template: './web/templates/index.html',
 });
 
 module.exports = {
   mode: 'development',
   devtool: 'source-map',
-  entry: './src/web/index.tsx',
+  entry: './web/index.tsx',
   output: {
     // NEW
     path: path.join(__dirname, 'dist/static'),
+    publicPath: '/static',
     filename: '[name].js',
   },
   module: {
@@ -42,5 +43,14 @@ module.exports = {
   plugins: [htmlPlugin],
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
+  },
+  devServer: {
+    watchOptions: {
+      poll: true,
+    },
+    contentBase: path.join(__dirname, 'dist'),
+    publicPath: '/static',
+    compress: true,
+    port: 8000,
   },
 };
