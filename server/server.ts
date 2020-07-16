@@ -11,7 +11,7 @@ export default class Server {
 
     new Controller({});
 
-    this.app.use(express.static(path.resolve('./') + '/dist/static'));
+    this.app.use('/static', express.static(path.resolve('.') + '/dist/static'));
     this.app.use('/', index);
   }
 

@@ -11,8 +11,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "strictNullChecks": true,
-    "jsx": "react"
+    "jsx": "react",
+    "experimentalDecorators": true
   },
-  "include": ["server/**/*.ts", "web/**/*.tsx"],
+  "include": ["./server/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

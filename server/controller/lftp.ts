@@ -32,6 +32,10 @@ function verifyLftpConnection(s: string) {
   });
 }
 
+function parseOutput(s: string) {
+  console.log(s);
+}
+
 export default class LFTP {
   child: ChildProcess;
 
@@ -39,9 +43,20 @@ export default class LFTP {
 
   user: string;
 
-  constructor(hostname: string, user: string) {
+  remoteDir: string;
+
+  localDir: string;
+
+  constructor(
+    hostname: string,
+    user: string,
+    remoteDir: string,
+    localDir: string,
+  ) {
     this.hostname = hostname;
     this.user = user;
+    this.remoteDir = remoteDir;
+    this.localDir = localDir;
 
     // Must use this connection type to avoid password prompts TODO catch errors
     this.child = spawn(
@@ -92,5 +107,24 @@ export default class LFTP {
     }
 
     // TODO other error conditions
+  }
+
+  runCommand(command: string) {
+    // TODO shift check to decorator
+    if (this.child === null) {
+      console.error('LFTP crashed');
+    }
+
+    const stdin: Writable = this.child.stdin!;
+    stdin.write(`${command}\n`);
+    this.child.stderr!.on('data', this.parseConnectionError);
+    this.child.stdout!.on('data', parseOutput);
+  }
+
+  queue(filename: string) {
+    // TODO ensure directory / handle file
+    this.runCommand(
+      `queue mirror -c /mnt/remote${this.remoteDir}/${filename} ${this.localDir}`,
+    );
   }
 }

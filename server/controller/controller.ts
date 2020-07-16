@@ -15,7 +15,12 @@ export default class Controller {
     this.context = context;
 
     // Construct LFTP object
-    this.lftp = new LFTP('cacus.feralhosting.com', 'ryjo1026');
+    this.lftp = new LFTP(
+      'cacus.feralhosting.com',
+      'ryjo1026',
+      '/private/rtorrent/unraid',
+      '/workspaces/untitled-lftp-project/test',
+    );
 
     // Initiate a scan process for each possible file "location" TODO paramaterize
     this.remoteScanner = new Scanner('/mnt/remote', true);

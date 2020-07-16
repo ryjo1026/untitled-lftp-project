@@ -8,7 +8,7 @@ router.get('/api', (req, res) => {
 });
 
 router.get('*', (req, res) => {
-  res.sendFile(`${path.resolve('./')}/dist/static/index.html`);
+  res.sendFile(`${path.resolve('./')}/dist/index.html`);
 });
 
 export default router;
