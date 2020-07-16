@@ -1,19 +1,41 @@
 import * as React from 'react';
 import styled from 'styled-components';
 
+import QuickLook from './components/QuickLook';
+import InProgressTable from './components/InProgressTable';
+
 const Columns = styled.div`
-  margin: 50px;
+  margin-top: 50px;
 `;
 
-export class Home extends React.Component<{}, {}> {
+// eslint-disable-next-line react/prefer-stateless-function
+export default class Home extends React.Component<{}, {}> {
   render() {
     return (
-      <Columns className="columns">
-        <div className="column">First column</div>
-        <div className="column">Second column</div>
-        <div className="column">Third column</div>
-        <div className="column">Fourth column</div>
-      </Columns>
+      <div className="Home">
+        <Columns className="columns">
+          <div className="column is-one-fifth" />
+          <div className="column">
+            <h1>Home</h1>
+          </div>
+          <div className="column is-one-fifth" />
+        </Columns>
+        <Columns className="columns">
+          <div className="column is-one-fifth" />
+          <div className="column">
+            <QuickLook />
+          </div>
+          <div className="column is-one-fifth" />
+        </Columns>
+        <Columns className="columns">
+          <div className="column is-one-fifth" />
+          <div className="column">
+            <h2 style={{ marginBottom: '10px' }}>In Progress</h2>
+            <InProgressTable />
+          </div>
+          <div className="column is-one-fifth" />
+        </Columns>
+      </div>
     );
   }
 }

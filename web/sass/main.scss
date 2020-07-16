@@ -3,6 +3,7 @@
 // Bulma overrides
 $family-sans-serif: 'LatoRegular';
 $primary: #5f67f3;
+$body-background-color: #f2f2f2;
 
 @import '../../node_modules/bulma/bulma.sass';
 
@@ -25,9 +26,13 @@ $family-display: 'LatoBlack';
 $family-heading: 'LatoBold';
 $family-body: 'Latoregular';
 
-h1,
+h1 {
+  font-family: $family-display;
+  font-size: 36px;
+}
 h2 {
   font-family: $family-display;
+  font-size: 24px;
 }
 
 h3,
