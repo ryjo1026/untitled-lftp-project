@@ -1,8 +1,8 @@
 import Scanner from './scanner';
 import LFTP from './lftp';
+import logger from '../common/logger';
 
 export default class Controller {
-  context: object;
   // lftpJobs: Array<LFTPJob>;
 
   lftp: LFTP;
@@ -11,16 +11,14 @@ export default class Controller {
 
   remoteScanner: Scanner;
 
-  constructor(context: object) {
-    this.context = context;
-
+  constructor() {
     // Construct LFTP object
-    this.lftp = new LFTP(
-      'cacus.feralhosting.com',
-      'ryjo1026',
-      '/private/rtorrent/unraid',
-      '/workspaces/untitled-lftp-project/test',
-    );
+    this.lftp = new LFTP({
+      hostname: 'cacus.feralhosting.com',
+      user: 'ryjo1026',
+      remoteDir: '/private/rtorrent/unraid',
+      localDir: '/workspaces/untitled-lftp-project/test',
+    });
 
     // Initiate a scan process for each possible file "location" TODO paramaterize
     this.remoteScanner = new Scanner('/mnt/remote', true);
@@ -38,7 +36,7 @@ export default class Controller {
   // Starts main controller logic post-constructing
   bootstrap() {
     // TODO log here
-    console.log('Bootstrapping controller');
+    logger.info('Bootstrapping controller');
 
     this.remoteScanner.bootstrap((files: string[]) => console.log(files));
     this.localScanner.bootstrap((files: string[]) => console.log(files));

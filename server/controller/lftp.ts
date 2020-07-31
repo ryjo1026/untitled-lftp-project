@@ -1,5 +1,16 @@
-import { spawn, ChildProcess, exec, execSync } from 'child_process';
+import { spawn, execSync, ChildProcess } from 'child_process';
+import * as fs from 'fs';
 import { Readable, Writable } from 'stream';
+import LftpJobStatusParser from './jobStatusParser';
+
+// A config paramater object
+interface Config {
+  hostname: string;
+  user: string;
+  // remoteDir is in comparison to root dir of remote machine (not including /mnt/remote)
+  remoteDir: string;
+  localDir: string;
+}
 
 function validateStream(s: Readable | Writable | null) {
   // TODO throw here
@@ -39,32 +50,23 @@ function parseOutput(s: string) {
 export default class LFTP {
   child: ChildProcess;
 
-  hostname: string;
+  config: Config;
 
-  user: string;
+  statusParser: LftpJobStatusParser;
 
-  remoteDir: string;
+  constructor(config: Config) {
+    this.config = config;
 
-  localDir: string;
+    // initialize a parser object for statuses
+    this.statusParser = new LftpJobStatusParser();
 
-  constructor(
-    hostname: string,
-    user: string,
-    remoteDir: string,
-    localDir: string,
-  ) {
-    this.hostname = hostname;
-    this.user = user;
-    this.remoteDir = remoteDir;
-    this.localDir = localDir;
-
-    // Must use this connection type to avoid password prompts TODO catch errors
+    // Must use this connection type to avoid password prompts TODO catch more errors
     this.child = spawn(
       'lftp',
       [
         '-u',
-        `${this.user},xxx`,
-        `sftp://${this.hostname}`,
+        `${this.config.user},xxx`,
+        `sftp://${this.config.hostname}`,
         '-e',
         '\'set sftp:connect-program "ssh -a -x -i /workspaces/untitled-lftp-project/KEYS/cacus"\'',
       ],
@@ -121,10 +123,32 @@ export default class LFTP {
     this.child.stdout!.on('data', parseOutput);
   }
 
+  /**
+   * Queues a job for downloading
+   * @param filename name of the remote file to download (assumes it's in the remote directory)
+   */
   queue(filename: string) {
-    // TODO ensure directory / handle file
+    // TODO needs path escaping?
+
+    const remoteFile: string = `/mnt/remote${this.config.remoteDir}/${filename}`;
+
+    let isFileDirectory: boolean;
+    try {
+      isFileDirectory = fs.lstatSync(remoteFile).isDirectory();
+    } catch (error) {
+      console.error(`Couldn't find ${remoteFile}: check that it exists`);
+      return;
+    }
+
     this.runCommand(
-      `queue mirror -c /mnt/remote${this.remoteDir}/${filename} ${this.localDir}`,
+      `queue ${isFileDirectory ? 'mirror' : 'pget'} -c ${remoteFile} ${
+        this.config.localDir
+      }`,
     );
+  }
+
+  status() {
+    this.child.stdin!.write('jobs -v\n');
+    this.child.stdout?.on('data', this.statusParser.parseJobs);
   }
 }
