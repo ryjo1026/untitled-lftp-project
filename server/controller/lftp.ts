@@ -141,9 +141,9 @@ export default class LFTP {
     }
 
     this.runCommand(
-      `queue ${isFileDirectory ? 'mirror' : 'pget'} -c ${remoteFile} ${
+      `queue ${isFileDirectory ? 'mirror' : 'pget'} -c -O ${
         this.config.localDir
-      }`,
+      } ${remoteFile} `,
     );
   }
 

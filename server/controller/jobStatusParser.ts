@@ -50,10 +50,11 @@ function timeToSeconds(t: string): Number {
 export default class LftpJobStatusParser {
   // eslint-disable-next-line class-methods-use-this
   parseJobs(output: string) {
-    let jobs: Array<LftpJob> = [];
+    const jobs: Array<LftpJob> = [];
 
+    // regexr.com/59f3v
     const pgetHeaderPattern = RegExp(
-      /^\[(?P<id>\d+)\]\s+pget\s+(?P<flags>.*?)\s+(?P<lq>['"]|)(?P<remote>.+)(?P=lq)\s+-o\s+(?P<rq>['"]|)(?P<local>.+)(?P=rq)$/,
+      /^\[(?<id>\d+)\]\s+pget\s+(?<flags>.*?)\s+(?<remote>.+)\s+-o\s+(?<local>.+)\s+--\s+(?<speed>.+)$/,
     );
 
     // Mirror header when downloading

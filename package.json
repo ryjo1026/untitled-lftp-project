@@ -22,6 +22,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "styled-components": "^5.1.1",
+    "ts-mocha": "^7.0.0",
     "webpack-dev-server": "^3.11.0",
     "winston": "^3.3.3"
   },
@@ -29,6 +30,7 @@
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.6",
     "@babel/preset-env": "^7.9.6",
+    "@types/mocha": "^8.0.1",
     "@types/node": "^14.0.5",
     "@types/react": "^16.9.41",
     "@types/react-dom": "^16.9.8",
@@ -45,6 +47,7 @@
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^2.5.1",
     "html-webpack-plugin": "^4.3.0",
+    "mocha": "^8.1.0",
     "nodemon-webpack-plugin": "^4.3.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",
@@ -64,6 +67,7 @@
     "build:server": "tsc",
     "build:webpack": "webpack",
     "build": "run-s build:**",
-    "start": "nodemon dist/index.js"
+    "start": "nodemon dist/index.js",
+    "test": "ts-mocha test/**/**.ts"
   }
 }
