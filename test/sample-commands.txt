@@ -1,1 +1,3 @@
 lftp -u ryjo1026,xxx sftp://cacus.feralhosting.com -e 'set sftp:connect-program "ssh -a -x -i /workspaces/untitled-lftp-project/KEYS/cacus"'
+
+queue 'pget -c "Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv" -o "/workspaces/untitled-lftp-project/test"'
