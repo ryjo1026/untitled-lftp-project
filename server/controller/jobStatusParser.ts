@@ -1,7 +1,7 @@
-import path from 'path';
 import { Readable } from 'stream';
 import readline from 'readline';
 import logger from '../common/logger';
+import { resolve } from 'path';
 
 enum JobType {
   PGET,
@@ -12,8 +12,8 @@ interface TransferState {
   localSize: Number | null;
   remoteSize: Number | null;
   percent: Number | null;
-  speed: Number | null;
-  eta: Number | null;
+  speed: string | null;
+  eta: string | null;
 }
 
 // Represents job as raw string output
@@ -30,6 +30,23 @@ interface LftpJob {
   flags: string;
   transferState: TransferState | null;
   isRunning: boolean;
+}
+
+// Types for ensuring all capture groups present in Regexp.exec()s
+interface PGetMatchGroups {
+  id: string;
+  flags: string;
+  remote: string;
+  local: string;
+  speed: string;
+}
+
+function hasPGetCaptureGroups(groups: any): groups is PGetMatchGroups {
+  return (
+    groups.id !== undefined &&
+    groups.remote !== undefined &&
+    groups.local !== undefined
+  );
 }
 
 // RegEx patterns
@@ -59,43 +76,22 @@ function timeToSeconds(t: string): Number {
 export default class LftpJobStatusParser {
   // pget header: regexr.com/59f3v
   pgetHeaderPattern: RegExp = RegExp(
-    /^\[(?<id>\d+)\]\s+pget\s+(?<flags>.*?)\s+(?<remote>.+)\s+-O\s+(?<local>.+)\s+--\s+(?<speed>.+)($|\n)/,
+    /\[(?<id>\d+)\]\s+pget\s+(?<flags>.*?)\s+(?<remote>.+)\s+-o\s+(?<local>.+)\s+--\s+(?<speed>.+)($|\n)/,
   );
 
   // mirror header downloading: regexr.com/5a68a
   mirrorHeaderPattern: RegExp = RegExp(
-    String.raw`^\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?(${SIZE_UNITS_PATTERN}?))\/(?<szremote>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?))\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?)\/s)?$/`,
+    String.raw`\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?(${SIZE_UNITS_PATTERN}?))\/(?<szremote>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?))\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?)\/s)?/`,
   );
 
   mirrorInitialHeaderPattern: RegExp = RegExp(
-    /^\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)$/,
+    /^\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)/,
   );
 
   // parseJobs takes in a Readable stream which can be used with files and stout interchangeably
   // eslint-disable-next-line class-methods-use-this
-  parseJobs(output: Readable) {
+  async parseJobs(output: Readable) {
     const jobs: Array<LftpJob> = [];
-
-    // // Mirror header when connection or getting the file list
-    // const mirrorInitialHeaderPattern = RegExp(
-    //   /^\[(?P<id>\d+)\]\s+mirror\s+(?P<flags>.*?)\s+(?P<lq>['\"]|)(?P<remote>.+)(?P=lq)\s+(?P<rq>['\"]|)(?P<local>.+)(?P=rq)$/,
-    // );
-
-    // const filenamePattern = RegExp(
-    //   String.raw`\\transfers${QUOTED_FILE_NAME_PATTERN}`,
-    // );
-
-    // const chunkAtPattern = RegExp(
-    //   String.raw`^${QUOTED_FILE_NAME_PATTERN}\s+at\s+\d+\s+(?:\(\d+%\)\s+)?((?P<speed>\d+\.?\d*\s?(${SIZE_UNITS_PATTERN}))\/s\s+)?(eta:(?P<eta>${TIME_UNITS_PATTERN})\s+)?\s*\[(?P<desc>.*)\]$`,
-    // );
-
-    // const chunkAt2Pattern = RegExp(
-    //   String.raw`^${QUOTED_FILE_NAME_PATTERN}\s+at\s+\d+\s+(?:\(\d+%\))`,
-    // );
-
-    // const chunkGotPattern = RegExp(
-    //   String.raw`^${QUOTED_FILE_NAME_PATTERN},\s+got\s+(?P<localSize>\d+)\s+of\s+(?P<remoteSize>\d+)\s+\((?P<percent>\d+)%\)(\s+(?P<speed>\d+\.?\d*\s?(${SIZE_UNITS_PATTERN}))\/s)?(\seta:(?P<eta>${TIME_UNITS_PATTERN}))?`,
-    // );
 
     // Create a readlines interface to iterate the stream
     const readInterface = readline.createInterface({
@@ -106,41 +102,74 @@ export default class LftpJobStatusParser {
       type: null,
       lines: [],
     };
-    readInterface
-      .on('line', (line) => {
-        // logger.debug(`Parsing line: ${line}`);
 
-        if (
-          this.pgetHeaderPattern.test(line) ||
-          this.mirrorHeaderPattern.test(line) ||
-          this.mirrorInitialHeaderPattern.test(line)
-        ) {
-          logger.debug('Header found, sending to parsing');
-          // If we encounter a header, send off the previous job for parsing and start a new one
-          const parsedJob = this.sendJobToParser(currentJob);
-          if (parsedJob) jobs.push(parsedJob);
-
-          // Initialize new job with type
-          let type = null;
-          if (this.pgetHeaderPattern.test(line)) {
-            type = JobType.PGET;
-          } else {
-            type = JobType.MIRROR;
-          }
-          currentJob = {
-            type,
-            lines: [line],
-          };
-        } else {
-          // Otherwise aggregate
-          currentJob.lines.push(line);
-        }
-      })
-      .on('close', () => {
-        // Send out the last job for parsing
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const line of readInterface) {
+      if (
+        this.pgetHeaderPattern.test(line) ||
+        this.mirrorHeaderPattern.test(line) ||
+        this.mirrorInitialHeaderPattern.test(line)
+      ) {
+        logger.debug('Header found, sending to parsing');
+        // If we encounter a header, send off the previous job for parsing and start a new one
         const parsedJob = this.sendJobToParser(currentJob);
         if (parsedJob) jobs.push(parsedJob);
-      });
+
+        // Initialize new job with type
+        let type = null;
+        if (this.pgetHeaderPattern.test(line)) {
+          type = JobType.PGET;
+        } else {
+          type = JobType.MIRROR;
+        }
+        currentJob = {
+          type,
+          lines: [line],
+        };
+      } else {
+        // Otherwise aggregate
+        currentJob.lines.push(line);
+      }
+    }
+
+    const parsedJob = this.sendJobToParser(currentJob);
+    if (parsedJob) jobs.push(parsedJob);
+    return jobs;
+
+    // readInterface
+    //   .on('line', (line) => {
+    //     if (
+    //       this.pgetHeaderPattern.test(line) ||
+    //       this.mirrorHeaderPattern.test(line) ||
+    //       this.mirrorInitialHeaderPattern.test(line)
+    //     ) {
+    //       logger.debug('Header found, sending to parsing');
+    //       // If we encounter a header, send off the previous job for parsing and start a new one
+    //       const parsedJob = this.sendJobToParser(currentJob);
+    //       if (parsedJob) jobs.push(parsedJob);
+
+    //       // Initialize new job with type
+    //       let type = null;
+    //       if (this.pgetHeaderPattern.test(line)) {
+    //         type = JobType.PGET;
+    //       } else {
+    //         type = JobType.MIRROR;
+    //       }
+    //       currentJob = {
+    //         type,
+    //         lines: [line],
+    //       };
+    //     } else {
+    //       // Otherwise aggregate
+    //       currentJob.lines.push(line);
+    //     }
+    //   })
+    //   .on('close', () => {
+    //     // Send out the last job for parsing
+    //     const parsedJob = this.sendJobToParser(currentJob);
+    //     if (parsedJob) jobs.push(parsedJob);
+    //     resolve();
+    //   });
   }
 
   /**
@@ -163,12 +192,88 @@ export default class LftpJobStatusParser {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  parsePGet(lines: Array<string>): LftpJob {
+  parsePGet(lines: Array<string>): LftpJob | null {
     logger.debug(`Parsing PGet: ${lines}`);
+
+    let line: string = lines.shift()!;
+    const match = this.pgetHeaderPattern.exec(line);
+    if (!match) {
+      // TODO custom winston logging for fomatting error type into log
+      logger.error(
+        new Error(
+          'parsePGet(): Expected PGet Header as first line in Job output',
+        ),
+      );
+    }
+    if (hasPGetCaptureGroups(match!.groups!)) {
+      // Advance to the next line (Should be sftp://... line)
+      line = lines.shift()!;
+      if (!line || !RegExp(/sftp:/).test(line)) {
+        logger.error(
+          new Error("parsePGet(): couldn't find sftp line after header"),
+        );
+      }
+
+      const { id, remote, flags } = match!.groups;
+
+      const job: LftpJob = {
+        type: JobType.PGET,
+        id: parseInt(id, 10),
+        filename: remote,
+        flags,
+        transferState: null,
+        isRunning: true,
+      };
+
+      // TODO actually go into chunk data and offer as info in details
+      line = lines.shift()!;
+      const dataLine = RegExp(
+        /`(?<name>.*)',\s+got\s(?<szlocal>\d+)\s+of\s+(?<szremote>\d+)\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)\/s)?(\s+eta:(?<etaD>\d*d)?(?<etaH>\d*h)?(?<etaM>\d*m)?(?<etaS>\d*s)?)?/,
+      ).exec(line);
+
+      // If we found a dataline update transferState
+      if (dataLine) {
+        const {
+          name,
+          szlocal,
+          szremote,
+          pct,
+          speed,
+          etaH,
+          etaD,
+          etaM,
+          etaS,
+        } = dataLine.groups!;
+
+        if (name !== remote) {
+          logger.error(
+            new Error(
+              "parsePGet(): header and data line filenames don't match",
+            ),
+          );
+        }
+
+        job.transferState = {
+          localSize: parseInt(szlocal, 10),
+          remoteSize: parseInt(szremote, 10),
+          percent: parseInt(pct, 10),
+          speed,
+          eta: [etaD, etaH, etaM, etaS].join(''), // This should combine eta into a space-separated string ignoring any "undefineds"
+        };
+      }
+      return job;
+    }
+    logger.error(
+      new Error(
+        "parsePGet(): PGet Header doesn't have all required capture groups",
+      ),
+    );
+    return null;
   }
 
   // eslint-disable-next-line class-methods-use-this
-  parseMirror(lines: Array<string>): LftpJob {
+  parseMirror(lines: Array<string>): LftpJob | null {
     logger.debug(`Parsing Mirror: ${lines}`);
+    return null;
   }
 }
