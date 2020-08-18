@@ -53,13 +53,6 @@ function hasPGetCaptureGroups(groups: any): groups is PGetMatchGroups {
 const SIZE_UNITS_PATTERN =
   '(b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)';
 
-const TIME_UNITS_PATTERN =
-  '(?P<eta_d>d*d)?(?P<eta_h>d*h)?(?P<eta_m>d*m)?(?P<eta_s>d*s)?';
-
-const QUOTED_FILE_NAME_PATTERN = "`(?P<name>.*)'";
-
-const QUEUE_DONE_PATTERN = '^[(?P<id>d+)]sDones(queues(.+))';
-
 function sizeToBytes(s: string): Number {
   // TODO
   return parseInt(s, 10);
@@ -76,12 +69,12 @@ function timeToSeconds(t: string): Number {
 export default class LftpJobStatusParser {
   // pget header: regexr.com/59f3v
   pgetHeaderPattern: RegExp = RegExp(
-    /\[(?<id>\d+)\]\s+pget\s+(?<flags>.*?)\s+(?<remote>.+)\s+-o\s+(?<local>.+)\s+--\s+(?<speed>.+)($|\n)/,
+    /^\s*\[(?<id>\d+)\]\s+pget\s+(?<flags>.*?)\s+(?<remote>.+)\s+-o\s+(?<local>.+)\s+--\s+(?<speed>.+)($|\n)/,
   );
 
   // mirror header downloading: regexr.com/5a68a
   mirrorHeaderPattern: RegExp = RegExp(
-    String.raw`\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?(${SIZE_UNITS_PATTERN}?))\/(?<szremote>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?))\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?)\/s)?/`,
+    String.raw`^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?(${SIZE_UNITS_PATTERN}?))\/(?<szremote>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?))\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?)\/s)?/`,
   );
 
   mirrorInitialHeaderPattern: RegExp = RegExp(
@@ -102,9 +95,14 @@ export default class LftpJobStatusParser {
       type: null,
       lines: [],
     };
-
+    let isInQueueSection: boolean = false;
     // eslint-disable-next-line no-restricted-syntax
     for await (const line of readInterface) {
+      // If there's queue info at the begining, ignore all info until the next header
+      if (RegExp(/\[\d+\]\s+queue\s+/).test(line)) {
+        isInQueueSection = true;
+      }
+
       if (
         this.pgetHeaderPattern.test(line) ||
         this.mirrorHeaderPattern.test(line) ||
@@ -112,8 +110,11 @@ export default class LftpJobStatusParser {
       ) {
         logger.debug('Header found, sending to parsing');
         // If we encounter a header, send off the previous job for parsing and start a new one
-        const parsedJob = this.sendJobToParser(currentJob);
-        if (parsedJob) jobs.push(parsedJob);
+        // If there are no lines then we must be at the beginning of the parse
+        if (currentJob.lines.length > 0) {
+          const parsedJob = this.sendJobToParser(currentJob);
+          if (parsedJob) jobs.push(parsedJob);
+        }
 
         // Initialize new job with type
         let type = null;
@@ -126,61 +127,24 @@ export default class LftpJobStatusParser {
           type,
           lines: [line],
         };
-      } else {
+
+        isInQueueSection = false;
+      } else if (!isInQueueSection) {
         // Otherwise aggregate
         currentJob.lines.push(line);
       }
     }
 
+    // Send off the last job and return
     const parsedJob = this.sendJobToParser(currentJob);
     if (parsedJob) jobs.push(parsedJob);
     return jobs;
-
-    // readInterface
-    //   .on('line', (line) => {
-    //     if (
-    //       this.pgetHeaderPattern.test(line) ||
-    //       this.mirrorHeaderPattern.test(line) ||
-    //       this.mirrorInitialHeaderPattern.test(line)
-    //     ) {
-    //       logger.debug('Header found, sending to parsing');
-    //       // If we encounter a header, send off the previous job for parsing and start a new one
-    //       const parsedJob = this.sendJobToParser(currentJob);
-    //       if (parsedJob) jobs.push(parsedJob);
-
-    //       // Initialize new job with type
-    //       let type = null;
-    //       if (this.pgetHeaderPattern.test(line)) {
-    //         type = JobType.PGET;
-    //       } else {
-    //         type = JobType.MIRROR;
-    //       }
-    //       currentJob = {
-    //         type,
-    //         lines: [line],
-    //       };
-    //     } else {
-    //       // Otherwise aggregate
-    //       currentJob.lines.push(line);
-    //     }
-    //   })
-    //   .on('close', () => {
-    //     // Send out the last job for parsing
-    //     const parsedJob = this.sendJobToParser(currentJob);
-    //     if (parsedJob) jobs.push(parsedJob);
-    //     resolve();
-    //   });
   }
 
   /**
    * Sends jobs to appropriate parse function
    */
-  sendJobToParser(j: LftpJobRaw): LftpJob | null {
-    // Reading the first line triggers a null job; ignore it
-    if (j.type === null) {
-      return null;
-    }
-
+  sendJobToParser(j: LftpJobRaw): LftpJob {
     if (j.type === JobType.PGET) {
       return this.parsePGet(j.lines);
     }

@@ -1,0 +1,58 @@
+[0] queue (sftp://ryjo1026:xxx@cacus.feralhosting.com)  -- 4.42 MiB/s
+        sftp://ryjo1026:xxx@cacus.feralhosting.com/media/sdl1/ryjo1026/private/rtorrent/unraid/Normal.People.S01E01.MULTi.1080p.WEB.H264-CiELOS
+        Now executing: [1] pget -c Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv -o /workspaces/untitled-lftp-project/test -- 2.33 MiB/s
+                -[2] pget -c normal.people.s01e01.multi.1080p.web.h264-cielos.r00 -o /workspaces/untitled-lftp-project/test -- 891.4 KiB/s
+                -[3] pget -c normal.people.s01e01.multi.1080p.web.h264-cielos.r01 -o /workspaces/untitled-lftp-project/test -- 1.07 MiB/s
+                -[4] pget -c normal.people.s01e01.multi.1080p.web.h264-cielos.r03 -o /workspaces/untitled-lftp-project/test -- 158.9 KiB/s
+ [1] pget -c Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv -o /workspaces/untitled-lftp-project/test  -- 2.33 MiB/s
+        sftp://ryjo1026:xxx@cacus.feralhosting.com/media/sdl1/ryjo1026/private/rtorrent/unraid
+        `Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv', got 1709506560 of 12053998409 (14%) 2.33M/s eta:82m 
+  \chunk 0-2410799685
+        `Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv' at 516653056 (4%) 516.0K/s eta:32m [Receiving data]
+  \chunk 9643198728-12053998408 
+        `Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv' at 9860450568 (9%) 343.2K/s eta:82m [Receiving data]
+  \chunk 7232399047-9643198727 
+        `Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv' at 7738533575 (20%) 796.0K/s eta:29m [Receiving data]
+  \chunk 4821599366-7232399046 
+        `Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv' at 5058708614 (9%) 357.3K/s eta:77m [Receiving data]
+  \chunk 2410799685-4821599365 
+        `Hell.or.High.Water.2016.1080p.BluRay.DD5.1.x264-SA89.mkv' at 2643157573 (9%) 368.4K/s eta:79m [Receiving data]
+ [2] pget -c normal.people.s01e01.multi.1080p.web.h264-cielos.r00 -o /workspaces/untitled-lftp-project/test  -- 891.4 KiB/s
+        sftp://ryjo1026:xxx@cacus.feralhosting.com/media/sdl1/ryjo1026/private/rtorrent/unraid/Normal.People.S01E01.MULTi.1080p.WEB.H264-CiELOS
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r00', got 27951104 of 100000000 (27%) 891.4K/s eta:8m 
+  \chunk 0-20000000
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r00' at 4947968 (4%) 152.1K/s eta:93s [Receiving data]
+  \chunk 80000000-99999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r00' at 89469952 (47%) 294.0K/s eta:33s [Receiving data]
+  \chunk 60000000-79999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r00' at 67176192 (35%) 216.1K/s eta:54s [Receiving data]
+  \chunk 40000000-59999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r00' at 45406720 (27%) 192.4K/s eta:71s [Receiving data]
+  \chunk 20000000-39999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r00' at 20950272 (4%) 36.7K/s eta:8m [Receiving data]
+ [3] pget -c normal.people.s01e01.multi.1080p.web.h264-cielos.r01 -o /workspaces/untitled-lftp-project/test  -- 1.07 MiB/s
+        sftp://ryjo1026:xxx@cacus.feralhosting.com/media/sdl1/ryjo1026/private/rtorrent/unraid/Normal.People.S01E01.MULTi.1080p.WEB.H264-CiELOS
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r01', got 23035904 of 100000000 (23%) 1.07M/s eta:6m 
+  \chunk 0-20000000
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r01' at 9273344 (9%) 401.1K/s eta:26s [Receiving data]
+  \chunk 80000000-99999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r01' at 81802240 (9%) 90.2K/s eta:3m [Receiving data]
+  \chunk 60000000-79999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r01' at 62097152 (10%) 119.1K/s eta:2m [Receiving data]
+  \chunk 40000000-59999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r01' at 40950272 (4%) 52.8K/s eta:6m [Receiving data]
+  \chunk 20000000-39999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r01' at 28912896 (44%) 431.2K/s eta:25s [Receiving data]
+ [4] pget -c normal.people.s01e01.multi.1080p.web.h264-cielos.r03 -o /workspaces/untitled-lftp-project/test  -- 158.9 KiB/s
+        sftp://ryjo1026:xxx@cacus.feralhosting.com/media/sdl1/ryjo1026/private/rtorrent/unraid/Normal.People.S01E01.MULTi.1080p.WEB.H264-CiELOS
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r03', got 327680 of 100000000 (0%) 158.9K/s 
+  \chunk 0-20000000
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r03' at 327680 (0%) 158.9K/s eta:2m [Receiving data]
+  \chunk 80000000-99999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r03' at 80000000 (0%) [Waiting for response...]
+  \chunk 60000000-79999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r03' at 60000000 (0%) [Connecting...]
+  \chunk 40000000-59999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r03' at 40000000 (0%) [Connecting...]
+  \chunk 20000000-39999999 
+        `normal.people.s01e01.multi.1080p.web.h264-cielos.r03' at 20000000 (0%) [Connecting...]
