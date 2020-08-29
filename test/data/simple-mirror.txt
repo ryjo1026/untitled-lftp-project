@@ -1,0 +1,54 @@
+[0] queue (sftp://ryjo1026:xxx@cacus.feralhosting.com)  -- 4.08 MiB/s
+        sftp://ryjo1026:xxx@cacus.feralhosting.com/media/sdl1/ryjo1026/private/rtorrent/unraid
+        Now executing: [1] mirror -c Unorthodox.S01.1080p.NF.WEB-DL.DDP5.1.x264-MZABI /workspaces/untitled-lftp-project/test -- 175M/9.0G (1%) 4.08 MiB/s
+        Commands queued:
+         1. mirror -c "Unorthodox.S01.1080p.NF.WEB-DL.DDP5.1.x264-MZABI" "/workspaces/untitled-lftp-project/test"
+ [1] mirror -c Unorthodox.S01.1080p.NF.WEB-DL.DDP5.1.x264-MZABI /workspaces/untitled-lftp-project/test  -- 175M/9.0G (1%) 4.08 MiB/s
+  \transfer `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' 
+        `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv', got 119209984 of 2435727782 (4%) 689.8K/s eta:3h20m 
+  \chunk 0-574124938
+        `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 111345664 (0%) 172.2K/s eta:44m [Receiving data]
+  \chunk 1970327071-2435727781 
+        `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1970851359 (0%) 37.8K/s eta:3h20m [Receiving data]
+  \chunk 1504926360-1970327070 
+        `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1508399768 (0%) 228.1K/s eta:33m [Receiving data]
+  \chunk 1039525649-1504926359 
+        `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1041000209 (0%) 100.4K/s eta:75m [Receiving data]
+  \chunk 574124938-1039525648 
+        `Unorthodox.S01E01.Part1.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 576517002 (0%) 151.3K/s eta:50m [Receiving data]
+  \transfer `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' 
+        `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv', got 13795328 of 1989565850 (0%) 908.7K/s eta:48m 
+  \chunk 0-397913170
+        `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 3145728 (0%) 213.5K/s eta:30m [Receiving data]
+  \chunk 1591652680-1989565849 
+        `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1593749832 (0%) 135.2K/s eta:48m [Receiving data]
+  \chunk 1193739510-1591652679 
+        `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1196459254 (0%) 177.0K/s eta:36m [Receiving data]
+  \chunk 795826340-1193739509 
+        `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 799496356 (0%) 238.6K/s eta:27m [Receiving data]
+  \chunk 397913170-795826339 
+        `Unorthodox.S01E02.Part2.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 400075858 (0%) 144.4K/s eta:45m [Receiving data]
+  \transfer `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' 
+        `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv', got 21790720 of 2456666844 (0%) 1.37M/s eta:72m 
+  \chunk 0-491333372
+        `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 2949120 (0%) 184.6K/s eta:43m [Receiving data]
+  \chunk 1965333476-2456666843 
+        `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1972313060 (1%) 452.4K/s eta:17m [Receiving data]
+  \chunk 1474000108-1965333475 
+        `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1480848620 (1%) 432.2K/s eta:18m [Receiving data]
+  \chunk 982666740-1474000107 
+        `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 986041844 (0%) 225.9K/s eta:35m [Receiving data]
+  \chunk 491333372-982666739 
+        `Unorthodox.S01E03.Part3.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 492971772 (0%) 110.5K/s eta:72m [Receiving data]
+  \transfer `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' 
+        `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv', got 19595264 of 2082797875 (0%) 1.15M/s eta:73m 
+  \chunk 0-416559575
+        `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 7995392 (0%) 433.2K/s eta:15m [Receiving data]
+  \chunk 1666238300-2082797874 
+        `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1669777244 (0%) 229.6K/s eta:29m [Receiving data]
+  \chunk 1249678725-1666238299 
+        `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 1252693381 (0%) 189.3K/s eta:36m [Receiving data]
+  \chunk 833119150-1249678724 
+        `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 836821934 (0%) 231.6K/s eta:29m [Receiving data]
+  \chunk 416559575-833119149 
+        `Unorthodox.S01E04.Part4.1080p.NF.WEB-DL.DDP5.1.x264-MZABI.mkv' at 417903063 (0%) 92.9K/s eta:73m [Receiving data]

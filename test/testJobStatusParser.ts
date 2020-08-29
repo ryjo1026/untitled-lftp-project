@@ -148,8 +148,6 @@ describe('JobStatusParser', () => {
             },
           ];
 
-          console.log(jobs);
-
           assert.deepStrictEqual(jobs, expected);
           done();
         })

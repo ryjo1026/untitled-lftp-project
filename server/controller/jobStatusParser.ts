@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 import readline from 'readline';
+import filesizeParser = require('filesize-parser');
 import logger from '../common/logger';
-import { resolve } from 'path';
 
 enum JobType {
   PGET,
@@ -41,7 +41,26 @@ interface PGetMatchGroups {
   speed: string;
 }
 
+interface MirrorMatchGroups {
+  id: string;
+  flags: string;
+  remote: string;
+  local: string;
+  szremote: string;
+  szlocal: string;
+  speed: string;
+  percent: string;
+}
+
 function hasPGetCaptureGroups(groups: any): groups is PGetMatchGroups {
+  return (
+    groups.id !== undefined &&
+    groups.remote !== undefined &&
+    groups.local !== undefined
+  );
+}
+
+function hasMirrorCaptureGroups(groups: any): groups is MirrorMatchGroups {
   return (
     groups.id !== undefined &&
     groups.remote !== undefined &&
@@ -53,14 +72,19 @@ function hasPGetCaptureGroups(groups: any): groups is PGetMatchGroups {
 const SIZE_UNITS_PATTERN =
   '(b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)';
 
-function sizeToBytes(s: string): Number {
-  // TODO
-  return parseInt(s, 10);
+function sizeToBytes(s: string): number {
+  return filesizeParser(s);
 }
 
-function timeToSeconds(t: string): Number {
+function calculateEta(
+  localSize: number,
+  remoteSize: number,
+  s: string,
+): number {
   // TODO
-  return parseInt(t, 10);
+  const speed: string = s.match(RegExp(/.+?(?=\/s)/))![0];
+
+  return (remoteSize - localSize) / filesizeParser(speed);
 }
 
 /**
@@ -74,11 +98,11 @@ export default class LftpJobStatusParser {
 
   // mirror header downloading: regexr.com/5a68a
   mirrorHeaderPattern: RegExp = RegExp(
-    String.raw`^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?(${SIZE_UNITS_PATTERN}?))\/(?<szremote>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?))\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(${SIZE_UNITS_PATTERN}?)\/s)?/`,
+    /^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?))\/(?<szremote>\d+.?\d*\s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?))\s+\((?<percent>\d+)%\)\s+(?<speed>\d+.?\d*\s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?)\/s)?($|\n)/,
   );
 
   mirrorInitialHeaderPattern: RegExp = RegExp(
-    /^\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)/,
+    /^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)/,
   );
 
   // parseJobs takes in a Readable stream which can be used with files and stout interchangeably
@@ -95,11 +119,13 @@ export default class LftpJobStatusParser {
       type: null,
       lines: [],
     };
+
     let isInQueueSection: boolean = false;
+    const queueLines: Array<string> = [];
+
     // eslint-disable-next-line no-restricted-syntax
     for await (const line of readInterface) {
-      // If there's queue info at the begining, ignore all info until the next header
-      if (RegExp(/\[\d+\]\s+queue\s+/).test(line)) {
+      if (RegExp(/^\s*\[\d+\]\s+queue/).test(line)) {
         isInQueueSection = true;
       }
 
@@ -109,9 +135,11 @@ export default class LftpJobStatusParser {
         this.mirrorInitialHeaderPattern.test(line)
       ) {
         logger.debug('Header found, sending to parsing');
-        // If we encounter a header, send off the previous job for parsing and start a new one
-        // If there are no lines then we must be at the beginning of the parse
-        if (currentJob.lines.length > 0) {
+        if (isInQueueSection) {
+          this.parseQueue(queueLines);
+          isInQueueSection = false;
+        } else if (currentJob.type != null) {
+          // If we aggregated a job parse it
           const parsedJob = this.sendJobToParser(currentJob);
           if (parsedJob) jobs.push(parsedJob);
         }
@@ -127,10 +155,11 @@ export default class LftpJobStatusParser {
           type,
           lines: [line],
         };
-
-        isInQueueSection = false;
-      } else if (!isInQueueSection) {
-        // Otherwise aggregate
+      } else if (isInQueueSection) {
+        // If we're in the queue aggregate to queueLines
+        queueLines.push(line);
+      } else {
+        // Otherwise aggregate to currentJob
         currentJob.lines.push(line);
       }
     }
@@ -146,18 +175,25 @@ export default class LftpJobStatusParser {
    */
   sendJobToParser(j: LftpJobRaw): LftpJob {
     if (j.type === JobType.PGET) {
-      return this.parsePGet(j.lines);
+      const pgetJob = this.parsePGet(j.lines);
+      if (pgetJob) return pgetJob;
     }
     if (j.type === JobType.MIRROR) {
-      return this.parseMirror(j.lines);
+      const mirrorJob = this.parseMirror(j.lines);
+      if (mirrorJob) return mirrorJob;
     }
 
-    throw new Error('Attempted to parse undefined JobType');
+    throw new Error('Attempted to parse unparsable job');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  parseQueue(lines: Array<string>) {
+    logger.debug(`Parsing queue lines: ${lines[0]}`);
   }
 
   // eslint-disable-next-line class-methods-use-this
   parsePGet(lines: Array<string>): LftpJob | null {
-    logger.debug(`Parsing PGet: ${lines}`);
+    logger.debug(`Parsing PGet: ${lines[0]}`);
 
     let line: string = lines.shift()!;
     const match = this.pgetHeaderPattern.exec(line);
@@ -192,11 +228,13 @@ export default class LftpJobStatusParser {
       // TODO actually go into chunk data and offer as info in details
       line = lines.shift()!;
       const dataLine = RegExp(
-        /`(?<name>.*)',\s+got\s(?<szlocal>\d+)\s+of\s+(?<szremote>\d+)\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)\/s)?(\s+eta:(?<etaD>\d*d)?(?<etaH>\d*h)?(?<etaM>\d*m)?(?<etaS>\d*s)?)?/,
+        /^\s*`(?<name>.*)',\s+got\s(?<szlocal>\d+)\s+of\s+(?<szremote>\d+)\s+\((?<pct>\d+)%\)\s+(?<speed>\d+.?\d*\s?(b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)\/s)?(\s+eta:(?<etaD>\d*d)?(?<etaH>\d*h)?(?<etaM>\d*m)?(?<etaS>\d*s)?)?/,
       ).exec(line);
 
       // If we found a dataline update transferState
       if (dataLine) {
+        logger.debug('dataline: ', dataLine);
+
         const {
           name,
           szlocal,
@@ -237,7 +275,53 @@ export default class LftpJobStatusParser {
 
   // eslint-disable-next-line class-methods-use-this
   parseMirror(lines: Array<string>): LftpJob | null {
-    logger.debug(`Parsing Mirror: ${lines}`);
+    logger.debug(`Parsing Mirror: ${lines[0]}`);
+
+    // TODO actually go into chunk data and individual files and offer as info in details
+
+    let line: string = lines.shift()!;
+    const match = this.mirrorHeaderPattern.exec(line);
+    console.log('HELLLLOOO', match);
+    if (!match) {
+      // TODO custom winston logging for fomatting error type into log
+      logger.error(
+        new Error(
+          'parseMirror(): Expected Mirror Header as first line in Job output',
+        ),
+      );
+    }
+    if (hasMirrorCaptureGroups(match!.groups!)) {
+      const {
+        id,
+        remote,
+        flags,
+        szlocal,
+        szremote,
+        percent,
+        speed,
+      } = match!.groups;
+
+      const localSize = sizeToBytes(szlocal);
+      const remoteSize = sizeToBytes(szremote);
+
+      const job: LftpJob = {
+        type: JobType.MIRROR,
+        id: parseInt(id, 10),
+        filename: remote,
+        flags,
+        transferState: {
+          localSize,
+          remoteSize,
+          percent: parseInt(percent, 10),
+          speed,
+          eta: calculateEta(localSize, remoteSize, speed),
+        },
+        isRunning: true,
+      };
+
+      return job;
+    }
+
     return null;
   }
 }
