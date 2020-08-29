@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import readline from 'readline';
+import moment from 'moment';
 import filesizeParser = require('filesize-parser');
 import logger from '../common/logger';
 
@@ -13,7 +14,7 @@ interface TransferState {
   remoteSize: Number | null;
   percent: Number | null;
   speed: string | null;
-  eta: string | null;
+  eta: number | null;
 }
 
 // Represents job as raw string output
@@ -73,7 +74,32 @@ const SIZE_UNITS_PATTERN =
   '(b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)';
 
 function sizeToBytes(s: string): number {
+  logger.debug(`size ${s} is ${filesizeParser(s)} in bytes`);
   return filesizeParser(s);
+}
+
+function etaToSeconds(
+  d: string,
+  h: string,
+  m: string,
+  s: string,
+): number | null {
+  let isEmpty: boolean = true;
+
+  const etaList = [d, h, m, s].map((t) => {
+    if (t !== undefined) {
+      isEmpty = false;
+      return parseInt(t.replace(/[^\d.-]/g, ''), 10);
+    }
+    return 0;
+  });
+
+  // If everything was undefined we have a null eta (not a 0 eta)
+  if (isEmpty) {
+    return null;
+  }
+
+  return etaList[0] * 86400 + etaList[1] * 3600 + etaList[2] * 60 + etaList[3];
 }
 
 function calculateEta(
@@ -84,7 +110,7 @@ function calculateEta(
   // TODO
   const speed: string = s.match(RegExp(/.+?(?=\/s)/))![0];
 
-  return (remoteSize - localSize) / filesizeParser(speed);
+  return Math.round(((remoteSize - localSize) * 8) / filesizeParser(speed));
 }
 
 /**
@@ -255,12 +281,14 @@ export default class LftpJobStatusParser {
           );
         }
 
+        const eta = etaToSeconds(etaD, etaH, etaM, etaS);
+
         job.transferState = {
           localSize: parseInt(szlocal, 10),
           remoteSize: parseInt(szremote, 10),
           percent: parseInt(pct, 10),
           speed,
-          eta: [etaD, etaH, etaM, etaS].join(''), // This should combine eta into a space-separated string ignoring any "undefineds"
+          eta, // This should combine eta into a space-separated string ignoring any "undefineds"
         };
       }
       return job;
@@ -279,9 +307,8 @@ export default class LftpJobStatusParser {
 
     // TODO actually go into chunk data and individual files and offer as info in details
 
-    let line: string = lines.shift()!;
+    const line: string = lines.shift()!;
     const match = this.mirrorHeaderPattern.exec(line);
-    console.log('HELLLLOOO', match);
     if (!match) {
       // TODO custom winston logging for fomatting error type into log
       logger.error(

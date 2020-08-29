@@ -28,7 +28,7 @@ describe('JobStatusParser', () => {
                 remoteSize: 12053998409,
                 percent: 80,
                 speed: '3.52M/s',
-                eta: '19m',
+                eta: 1140,
               },
               isRunning: true,
             },
@@ -64,7 +64,7 @@ describe('JobStatusParser', () => {
                 remoteSize: 12053998409,
                 percent: 80,
                 speed: '3.52M/s',
-                eta: '19m',
+                eta: 1140,
               },
               isRunning: true,
             },
@@ -100,7 +100,7 @@ describe('JobStatusParser', () => {
                 remoteSize: 12053998409,
                 percent: 14,
                 speed: '2.33M/s',
-                eta: '82m',
+                eta: 4920,
               },
               isRunning: true,
             },
@@ -114,7 +114,7 @@ describe('JobStatusParser', () => {
                 remoteSize: 100000000,
                 percent: 27,
                 speed: '891.4K/s',
-                eta: '8m',
+                eta: 480,
               },
               isRunning: true,
             },
@@ -128,7 +128,7 @@ describe('JobStatusParser', () => {
                 remoteSize: 100000000,
                 percent: 23,
                 speed: '1.07M/s',
-                eta: '6m',
+                eta: 360,
               },
               isRunning: true,
             },
@@ -142,9 +142,44 @@ describe('JobStatusParser', () => {
                 remoteSize: 100000000,
                 percent: 0,
                 speed: '158.9K/s',
-                eta: '',
+                eta: null,
               },
               isRunning: true,
+            },
+          ];
+
+          assert.deepStrictEqual(jobs, expected);
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
+
+    it('should parse basic mirror', (done) => {
+      const parser = new JobStatusParser();
+
+      parser
+        .parseJobs(
+          fs.createReadStream(
+            '/workspaces/untitled-lftp-project/test/data/simple-mirror.txt',
+          ),
+        )
+        .then((jobs) => {
+          const expected = [
+            {
+              filename: 'Unorthodox.S01.1080p.NF.WEB-DL.DDP5.1.x264-MZABI',
+              flags: '-c',
+              id: 1,
+              isRunning: true,
+              transferState: {
+                eta: 17727,
+                localSize: 183500800,
+                percent: 1,
+                remoteSize: 9663676416,
+                speed: '4.08 MiB/s',
+              },
+              type: 1,
             },
           ];
 
