@@ -190,6 +190,57 @@ describe('JobStatusParser', () => {
           done(err);
         });
     });
+
+    it('should parse multiple mirrors', (done) => {
+      const parser = new JobStatusParser();
+
+      parser
+        .parseJobs(
+          fs.createReadStream(
+            '/workspaces/untitled-lftp-project/test/data/multiple-mirror.txt',
+          ),
+        )
+        .then((jobs) => {
+          const expected = [
+            {
+              type: 1,
+              id: 1,
+              filename:
+                'The.Mandalorian.S01E03.INTERNAL.1080p.HEVC.x265-MeGusta',
+              flags: '--use-pget-n=5 -c',
+              transferState: {
+                localSize: 54525952,
+                remoteSize: 343932928,
+                percent: 15,
+                speed: '7.66 MiB/s',
+                eta: 288,
+              },
+              isRunning: true,
+            },
+            {
+              type: 1,
+              id: 2,
+              filename:
+                'The.Mandalorian.S01E02.INTERNAL.1080p.HEVC.x265-MeGusta',
+              flags: '--use-pget-n=5 -c',
+              transferState: {
+                localSize: 5138022,
+                remoteSize: 359661568,
+                percent: 1,
+                speed: '1.75 MiB/s',
+                eta: 1546,
+              },
+              isRunning: true,
+            },
+          ];
+
+          assert.deepStrictEqual(jobs, expected);
+          done();
+        })
+        .catch((err) => {
+          done(err);
+        });
+    });
   });
 });
 

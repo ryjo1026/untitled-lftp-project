@@ -119,16 +119,16 @@ function calculateEta(
 export default class LftpJobStatusParser {
   // pget header: regexr.com/59f3v
   pgetHeaderPattern: RegExp = RegExp(
-    /^\s*\[(?<id>\d+)\]\s+pget\s+(?<flags>.*?)\s+(?<remote>.+)\s+-o\s+(?<local>.+)\s+--\s+(?<speed>.+)($|\n)/,
+    /^\s*\[(?<id>\d+)\]\s+pget\s+(?<flags>.*)\s+(?<remote>.+)\s+-o\s+(?<local>.+)\s+--\s+(?<speed>.+)($|\n)/,
   );
 
   // mirror header downloading: regexr.com/5a68a
   mirrorHeaderPattern: RegExp = RegExp(
-    /^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?))\/(?<szremote>\d+.?\d*\s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?))\s+\((?<percent>\d+)%\)\s+(?<speed>\d+.?\d*\s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?)\/s)?($|\n)/,
+    /^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*)\s+(?<remote>.+)\s+(?<local>\/.+)\s+--\s+(?<szlocal>\d+.?\d*s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?))\/(?<szremote>\d+.?\d*\s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?))\s+\((?<percent>\d+)%\)\s+(?<speed>\d+.?\d*\s?((b|B|k|kb|kib|K|Kb|KB|KiB|Kib|m|mb|mib|M|Mb|MB|MiB|Mib|g|gb|gib|G|Gb|GB|GiB|Gib)?)\/s)?($|\n)/,
   );
 
   mirrorInitialHeaderPattern: RegExp = RegExp(
-    /^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*?)\s+(?<remote>.+)\s+(?<local>\/.+)/,
+    /^\s*\[(?<id>\d+)\]\s+mirror\s+(?<flags>.*)\s+(?<remote>.+)\s+(?<local>\/.+)/,
   );
 
   // parseJobs takes in a Readable stream which can be used with files and stout interchangeably
