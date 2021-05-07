@@ -7,6 +7,7 @@ import LftpJobStatusParser from './jobStatusParser';
 interface Config {
   hostname: string;
   user: string;
+  remoteHome: string;
   // remoteDir is in comparison to root dir of remote machine (not including /mnt/remote)
   remoteDir: string;
   localDir: string;
@@ -15,32 +16,6 @@ interface Config {
 function validateStream(s: Readable | Writable | null) {
   // TODO throw here
   if (s === null) console.error(`${s}: Stream is null`);
-}
-
-function verifyLftpConnection(s: string) {
-  const lftpOut = s.toString();
-
-  // Verify proper connection by comparing LFTP files with SSHFS files
-  const lftpFileList = lftpOut.match(/(?!\s)(\S*)(?=\n)/g);
-  let sshfsFileList: string[];
-
-  const sshfsLs = spawn('ls', ['-va', '/mnt/remote']);
-  sshfsLs.stdout.on('data', (data) => {
-    const sshfsOut = data.toString();
-
-    // TODO abstract SSHFS methods
-    sshfsFileList = sshfsOut.match(/([^\s]+)/g);
-
-    if (sshfsFileList.sort().toString() !== lftpFileList!.sort().toString()) {
-      console.error(
-        'File structures desynced',
-        sshfsFileList.sort(),
-        lftpFileList!.sort(),
-      );
-      process.exit(1);
-    }
-    console.log('Successful LFTP connection');
-  });
 }
 
 function parseOutput(s: string) {
@@ -90,7 +65,9 @@ export default class LFTP {
 
     stdin.write('ls\n');
     this.child.stderr!.on('data', this.parseConnectionError);
-    this.child.stdout!.on('data', verifyLftpConnection);
+    this.child.stdout!.on('data', this.verifyLftpConnection);
+
+    //TODO fix flow here, should await verifaction then allow commands
   }
 
   parseConnectionError(s: string) {
@@ -105,10 +82,11 @@ export default class LFTP {
 
       // Re-try verification
       this.child.stdin!.write('ls\n');
-      this.child.stdout!.on('data', verifyLftpConnection);
+      this.child.stdout!.on('data', this.verifyLftpConnection);
     }
 
     // TODO other error conditions
+    // Parsing error mirror: Access failed: No such file
   }
 
   runCommand(command: string) {
@@ -129,12 +107,15 @@ export default class LFTP {
    */
   queue(filename: string) {
     // TODO needs path escaping?
+    console.log(`queueing ${filename}`);
 
-    const remoteFile: string = `/mnt/remote${this.config.remoteDir}/${filename}`;
+    const remoteFile: string = `${this.config.remoteHome}/${this.config.remoteDir}/${filename}`;
 
     let isFileDirectory: boolean;
     try {
-      isFileDirectory = fs.lstatSync(remoteFile).isDirectory();
+      isFileDirectory = fs
+        .lstatSync(`/mnt/remote/${this.config.remoteDir}/${filename}`)
+        .isDirectory();
     } catch (error) {
       console.error(`Couldn't find ${remoteFile}: check that it exists`);
       return;
@@ -150,5 +131,38 @@ export default class LFTP {
   status() {
     this.child.stdin!.write('jobs -v\n');
     this.child.stdout?.on('data', this.statusParser.parseJobs);
+  }
+
+  verifyLftpConnection(s: string) {
+    const lftpOut = s.toString();
+
+    // Verify proper connection by comparing LFTP files with SSHFS files
+    const lftpFileList = lftpOut.match(/(?!\s)(\S*)(?=\n)/g);
+    let sshfsFileList: string[];
+
+    const sshfsLs = spawn('ls', ['-va', '/mnt/remote']);
+    sshfsLs.stdout.on('data', (data) =>
+      this.verifyLftpSynced(data, lftpFileList),
+    );
+  }
+
+  verifyLftpSynced(data: any, lftpFileList: any) {
+    const sshfsOut = data.toString();
+
+    // TODO abstract SSHFS methods
+    let sshfsFileList = sshfsOut.match(/([^\s]+)/g);
+
+    if (sshfsFileList.sort().toString() !== lftpFileList!.sort().toString()) {
+      console.error(
+        'File structures desynced',
+        sshfsFileList.sort(),
+        lftpFileList!.sort(),
+      );
+      process.exit(1);
+    }
+    console.log('Successful LFTP connection');
+
+    //FIXME Test fixture
+    this.queue('The.Mandalorian.S01E02.INTERNAL.1080p.HEVC.x265-MeGusta');
   }
 }

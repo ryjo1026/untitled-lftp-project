@@ -16,6 +16,7 @@ export default class Controller {
     this.lftp = new LFTP({
       hostname: 'cacus.feralhosting.com',
       user: 'ryjo1026',
+      remoteHome: '/media/sdl1/ryjo1026',
       remoteDir: '/private/rtorrent/unraid',
       localDir: '/workspaces/untitled-lftp-project/test',
     });
